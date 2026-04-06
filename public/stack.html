@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browns AI — Tech Stack 2026</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #03030c;
+      color: #e0e0ff;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #03030ccc;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1a1a3a;
+    }
+    header h1 { font-size: 15px; color: #ff006e; letter-spacing: 2px; }
+    header nav a {
+      color: #00f5ff;
+      text-decoration: none;
+      margin-left: 16px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    header nav a:hover { opacity: 1; }
+
+    canvas { display: block; }
+
+    /* Tooltip */
+    #tooltip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 200;
+      background: #0a0a1aee;
+      border: 1px solid #2a2a5a;
+      border-radius: 4px;
+      padding: 10px 14px;
+      max-width: 220px;
+      display: none;
+    }
+    #tooltip h3 { font-size: 12px; color: #00f5ff; margin-bottom: 4px; letter-spacing: 1px; }
+    #tooltip p  { font-size: 10px; color: #9090cc; line-height: 1.5; }
+    #tooltip .badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      margin-top: 6px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* Legend */
+    #legend {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 100;
+      background: #0a0a1acc;
+      border: 1px solid #1a1a3a;
+      border-radius: 4px;
+      padding: 12px 16px;
+    }
+    #legend h4 { font-size: 9px; letter-spacing: 2px; color: #ffffff44; margin-bottom: 8px; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      font-size: 10px;
+      color: #9090cc;
+    }
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    #hint {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 10px;
+      color: #ffffff22;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>◈ BROWNS AI — TECH STACK 2026</h1>
+  <nav>
+    <a href="/">← Oficina</a>
+    <a href="/reader.html">Scripts</a>
+  </nav>
+</header>
+
+<div id="tooltip">
+  <h3 id="tt-name"></h3>
+  <p id="tt-desc"></p>
+  <span class="badge" id="tt-badge"></span>
+</div>
+
+<div id="legend">
+  <h4>CATEGORÍAS</h4>
+  <div class="legend-item"><div class="legend-dot" style="background:#00f5ff"></div>Motor 3D (Core)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#39ff14"></div>Animación / Tiempo</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#bf00ff"></div>GPU / Shaders</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ff006e"></div>Post-proceso</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ffbe0b"></div>Materialidad PBR</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ff7700"></div>Performance</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#aaaaff"></div>UI Layer</div>
+</div>
+
+<div id="hint">drag to rotate · scroll to zoom · hover nodes</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://esm.sh/three@0.165.0",
+    "three/addons/": "https://esm.sh/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
+
+// ── Tech Stack Data ──────────────────────────────────────────────────────────
+const NODES = [
+  {
+    id: 'r3f',
+    name: 'React Three Fiber',
+    cat: 'core',
+    color: '#00f5ff',
+    pos: [0, 0, 0],
+    size: 0.55,
+    desc: 'Reconciliador de Three.js en React. Gestión de estado 3D como componentes UI.',
+    badge: 'CORE ENGINE',
+    badgeColor: '#00f5ff'
+  },
+  {
+    id: 'gsap',
+    name: 'GSAP 3.x + ScrollTrigger',
+    cat: 'anim',
+    color: '#39ff14',
+    pos: [2.8, 0.5, 0],
+    size: 0.42,
+    desc: 'Estándar de la industria para Scroll Storytelling. Timelines no lineales sincronizadas al milímetro.',
+    badge: 'ANIMATION',
+    badgeColor: '#39ff14'
+  },
+  {
+    id: 'drei',
+    name: 'Drei (helpers)',
+    cat: 'core',
+    color: '#00ccff',
+    pos: [-2.5, 1.0, 0.5],
+    size: 0.35,
+    desc: 'Navaja suiza: useScroll, Float, Environment. Meses de trabajo matemático en líneas de código.',
+    badge: 'HELPERS',
+    badgeColor: '#00ccff'
+  },
+  {
+    id: 'webgpu',
+    name: 'TSL + WebGPU',
+    cat: 'gpu',
+    color: '#bf00ff',
+    pos: [0, 2.5, -2],
+    size: 0.5,
+    desc: 'Era de la transición WebGL → WebGPU. Partículas y simulaciones antes imposibles en browser.',
+    badge: 'DISRUPTIVO',
+    badgeColor: '#bf00ff'
+  },
+  {
+    id: 'composer',
+    name: 'EffectComposer',
+    cat: 'post',
+    color: '#ff006e',
+    pos: [-1.8, -1.5, 1.5],
+    size: 0.4,
+    desc: 'Bloom, Chromatic Aberration, SSAO. El "maquillaje" digital que separa élite de aficionados.',
+    badge: 'POST-PROCESO',
+    badgeColor: '#ff006e'
+  },
+  {
+    id: 'bloom',
+    name: 'Unreal Bloom',
+    cat: 'post',
+    color: '#ff3399',
+    pos: [-3.2, -0.5, -1],
+    size: 0.32,
+    desc: 'Resplandor etéreo en luces. Imperfecciones ópticas que dan sensación cinematográfica.',
+    badge: 'VISUAL FX',
+    badgeColor: '#ff3399'
+  },
+  {
+    id: 'pbr',
+    name: 'MeshPhysicalMaterial',
+    cat: 'material',
+    color: '#ffbe0b',
+    pos: [1.5, -2.2, -1.5],
+    size: 0.45,
+    desc: 'PBR: transmisión (cristal), clearcoat (barniz lujoso), iridiscencia. Ideal para Web3.',
+    badge: 'PBR ÉLITE',
+    badgeColor: '#ffbe0b'
+  },
+  {
+    id: 'instanced',
+    name: 'Instanced Mesh',
+    cat: 'perf',
+    color: '#ff7700',
+    pos: [3.0, -1.5, 1],
+    size: 0.38,
+    desc: '1 Draw Call para 1,000 objetos idénticos. La Regla de Oro de 60fps constantes.',
+    badge: '60 FPS',
+    badgeColor: '#ff7700'
+  },
+  {
+    id: 'lod',
+    name: 'LOD (Level of Detail)',
+    cat: 'perf',
+    color: '#ff9900',
+    pos: [2.0, 1.8, 2.5],
+    size: 0.3,
+    desc: 'Objetos lejanos = baja poligonización. Cerca = alta fidelidad. Performance inteligente.',
+    badge: 'RENDIMIENTO',
+    badgeColor: '#ff9900'
+  },
+  {
+    id: 'tailwind',
+    name: 'Tailwind CSS',
+    cat: 'ui',
+    color: '#aaaaff',
+    pos: [-1.0, -2.8, -0.5],
+    size: 0.33,
+    desc: 'Glassmorphism sobre el Canvas de forma ultra rápida. Capas de cristal sobre el 3D.',
+    badge: 'UI LAYER',
+    badgeColor: '#aaaaff'
+  },
+  {
+    id: 'framer',
+    name: 'Framer Motion',
+    cat: 'ui',
+    color: '#cc88ff',
+    pos: [-2.8, 2.0, 1.5],
+    size: 0.33,
+    desc: 'Transiciones DOM tan "líquidas" como el 3D de fondo. Botones y texto animados.',
+    badge: 'MOTION UI',
+    badgeColor: '#cc88ff'
+  }
+];
+
+// Conexiones entre nodos (por id)
+const EDGES = [
+  ['r3f', 'drei'],
+  ['r3f', 'gsap'],
+  ['r3f', 'webgpu'],
+  ['r3f', 'composer'],
+  ['r3f', 'pbr'],
+  ['r3f', 'instanced'],
+  ['composer', 'bloom'],
+  ['instanced', 'lod'],
+  ['tailwind', 'framer'],
+  ['gsap', 'framer'],
+  ['webgpu', 'pbr'],
+  ['composer', 'pbr'],
+  ['drei', 'bloom'],
+];
+
+// ── Scene setup ──────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+const scene  = new THREE.Scene();
+scene.fog    = new THREE.FogExp2('#03030c', 0.06);
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(5, 3, 8);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping    = true;
+controls.dampingFactor    = 0.07;
+controls.minDistance      = 3;
+controls.maxDistance      = 20;
+controls.autoRotate       = true;
+controls.autoRotateSpeed  = 0.4;
+
+// Bloom post-processing
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  1.4,   // strength
+  0.5,   // radius
+  0.15   // threshold
+);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
+// ── Nodes ────────────────────────────────────────────────────────────────────
+const nodeMap     = {};
+const nodeMeshes  = [];
+
+NODES.forEach(n => {
+  const geo  = new THREE.OctahedronGeometry(n.size, 2);
+  const mat  = new THREE.MeshPhongMaterial({
+    color:        new THREE.Color(n.color),
+    emissive:     new THREE.Color(n.color),
+    emissiveIntensity: 0.6,
+    shininess:    120,
+    transparent:  true,
+    opacity:      0.92,
+    wireframe:    false
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(...n.pos);
+  mesh.userData = { ...n, baseIntensity: 0.6 };
+  scene.add(mesh);
+
+  // Outer wireframe glow ring
+  const wireMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(n.color),
+    wireframe: true,
+    transparent: true,
+    opacity: 0.15
+  });
+  const wire = new THREE.Mesh(new THREE.OctahedronGeometry(n.size * 1.35, 2), wireMat);
+  wire.position.copy(mesh.position);
+  scene.add(wire);
+  mesh.userData.wire = wire;
+
+  // Point light for each node
+  const light = new THREE.PointLight(new THREE.Color(n.color), 0.8, 3.5);
+  light.position.copy(mesh.position);
+  scene.add(light);
+  mesh.userData.light = light;
+
+  nodeMap[n.id] = mesh;
+  nodeMeshes.push(mesh);
+});
+
+// ── Edges ────────────────────────────────────────────────────────────────────
+EDGES.forEach(([a, b]) => {
+  const mA = nodeMap[a], mB = nodeMap[b];
+  if (!mA || !mB) return;
+
+  const pts = [mA.position.clone(), mB.position.clone()];
+  const geo  = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat  = new THREE.LineBasicMaterial({
+    color: new THREE.Color('#2a2a6a'),
+    transparent: true,
+    opacity: 0.4
+  });
+  scene.add(new THREE.Line(geo, mat));
+});
+
+// ── Stars background ──────────────────────────────────────────────────────────
+const starGeo = new THREE.BufferGeometry();
+const starVerts = [];
+for (let i = 0; i < 1800; i++) {
+  starVerts.push(
+    (Math.random() - 0.5) * 80,
+    (Math.random() - 0.5) * 80,
+    (Math.random() - 0.5) * 80
+  );
+}
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
+const starMat  = new THREE.PointsMaterial({ color: '#ffffff', size: 0.04, transparent: true, opacity: 0.5 });
+scene.add(new THREE.Points(starGeo, starMat));
+
+// ── Raycaster / hover ────────────────────────────────────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouse     = new THREE.Vector2();
+const tooltip   = document.getElementById('tooltip');
+let hoveredMesh = null;
+
+document.addEventListener('mousemove', e => {
+  mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(nodeMeshes);
+
+  if (hits.length) {
+    const m = hits[0].object;
+    if (hoveredMesh !== m) {
+      if (hoveredMesh) resetNode(hoveredMesh);
+      hoveredMesh = m;
+      highlightNode(m);
+    }
+    // Position tooltip
+    tooltip.style.display = 'block';
+    tooltip.style.left    = (e.clientX + 16) + 'px';
+    tooltip.style.top     = (e.clientY - 10) + 'px';
+    document.getElementById('tt-name').textContent  = m.userData.name;
+    document.getElementById('tt-desc').textContent  = m.userData.desc;
+    const badge = document.getElementById('tt-badge');
+    badge.textContent          = m.userData.badge;
+    badge.style.background     = m.userData.badgeColor + '22';
+    badge.style.color          = m.userData.badgeColor;
+    badge.style.border         = `1px solid ${m.userData.badgeColor}55`;
+    controls.autoRotate        = false;
+  } else {
+    if (hoveredMesh) { resetNode(hoveredMesh); hoveredMesh = null; }
+    tooltip.style.display = 'none';
+    controls.autoRotate   = true;
+  }
+});
+
+function highlightNode(m) {
+  m.material.emissiveIntensity = 2.0;
+  m.userData.wire.material.opacity = 0.5;
+  m.userData.light.intensity = 3.0;
+  m.scale.setScalar(1.2);
+}
+function resetNode(m) {
+  m.material.emissiveIntensity = m.userData.baseIntensity;
+  m.userData.wire.material.opacity = 0.15;
+  m.userData.light.intensity = 0.8;
+  m.scale.setScalar(1.0);
+}
+
+// ── Resize ────────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Animate ───────────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // Gentle float on each node
+  nodeMeshes.forEach((m, i) => {
+    m.rotation.y = t * 0.4 + i * 0.7;
+    m.rotation.x = t * 0.2 + i * 0.3;
+    m.position.y = m.userData.pos[1] + Math.sin(t * 0.8 + i * 1.1) * 0.12;
+    m.userData.wire.position.copy(m.position);
+    m.userData.wire.rotation.copy(m.rotation);
+    m.userData.light.position.copy(m.position);
+  });
+
+  controls.update();
+  composer.render();
+}
+animate();
+</script>
+</body>
+</html>
