@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browns AI — Umbra Office</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #05050f;
+      color: #e0e0ff;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #0a0a1a;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    header h1 { font-size: 16px; color: #ff006e; letter-spacing: 2px; }
+    header nav a {
+      color: #00f5ff;
+      text-decoration: none;
+      margin-left: 16px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    header nav a:hover { opacity: 1; }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      grid-template-rows: auto 1fr;
+      gap: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Canvas isométrico ── */
+    .canvas-wrap {
+      grid-column: 1;
+      grid-row: 1;
+      position: relative;
+      background: #05050f;
+      padding: 8px;
+    }
+    #officeCanvas {
+      display: block;
+      width: 100%;
+      max-width: 800px;
+      height: 420px;
+      border: 1px solid #1a1a3a;
+      border-radius: 4px;
+    }
+
+    /* ── Panel lateral ── */
+    .side-panel {
+      grid-column: 2;
+      grid-row: 1 / 3;
+      background: #0a0a1a;
+      border-left: 1px solid #1a1a3a;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .panel-section {
+      padding: 14px;
+      border-bottom: 1px solid #1a1a3a;
+    }
+    .panel-section h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #00f5ff;
+      margin-bottom: 10px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #0d0d22;
+      border: 1px solid #2a2a4a;
+      color: #e0e0ff;
+      padding: 7px 10px;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 12px;
+      margin-bottom: 8px;
+      resize: vertical;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #00f5ff;
+    }
+
+    button {
+      width: 100%;
+      padding: 9px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary   { background: #ff006e; color: #fff; }
+    .btn-secondary { background: #00f5ff; color: #050510; margin-top: 6px; }
+    .btn-notion    { background: #bf00ff; color: #fff; margin-top: 6px; }
+
+    .status-log {
+      font-size: 11px;
+      color: #00f5ff99;
+      margin-top: 8px;
+      min-height: 32px;
+      line-height: 1.5;
+    }
+
+    /* ── Kanban ── */
+    .kanban-wrap {
+      grid-column: 1;
+      grid-row: 2;
+      padding: 10px;
+      overflow-x: auto;
+    }
+
+    .kanban-board {
+      display: flex;
+      gap: 10px;
+      min-width: 600px;
+    }
+
+    .kanban-col {
+      flex: 1;
+      background: #0a0a1a;
+      border: 1px solid #1a1a3a;
+      border-radius: 4px;
+      min-height: 200px;
+    }
+    .col-header {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #1a1a3a;
+      background: #0d0d22;
+    }
+    .col-body {
+      padding: 8px;
+      min-height: 160px;
+      transition: background 0.2s;
+    }
+    .col-body.drag-over { background: #1a1a3a; }
+
+    .kanban-card {
+      background: #111128;
+      border: 1px solid #2a2a4a;
+      border-left: 3px solid #555;
+      border-radius: 3px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      cursor: grab;
+      transition: transform 0.15s;
+    }
+    .kanban-card:active, .kanban-card.dragging { opacity: 0.5; transform: rotate(1deg); }
+    .card-title { font-size: 11px; margin-bottom: 4px; }
+    .card-meta  { display: flex; gap: 8px; }
+    .tag-agent, .tag-prio { font-size: 9px; font-weight: bold; letter-spacing: 1px; }
+
+    /* ── Script Panel ── */
+    .script-output {
+      background: #0d0d22;
+      border: 1px solid #2a2a4a;
+      border-radius: 3px;
+      padding: 10px;
+      font-size: 11px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 280px;
+      overflow-y: auto;
+      margin-top: 8px;
+      color: #c0c0ee;
+    }
+    .script-output:empty::before {
+      content: 'El script aparecerá aquí...';
+      color: #3a3a5a;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a1a; }
+    ::-webkit-scrollbar-thumb { background: #2a2a5a; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>◈ BROWNS AI</h1>
+  <nav>
+    <a href="/reader.html">📚 Scripts &amp; Fuentes</a>
+    <span id="header-status" style="color:#ffffff33; font-size:11px; margin-left:16px;">●</span>
+  </nav>
+</header>
+
+<div class="main-layout">
+
+  <!-- Canvas isométrico -->
+  <div class="canvas-wrap">
+    <canvas id="officeCanvas" width="800" height="420"></canvas>
+  </div>
+
+  <!-- Panel lateral -->
+  <div class="side-panel">
+
+    <!-- Sprint -->
+    <div class="panel-section">
+      <h2>🎯 Nuevo Sprint</h2>
+      <input type="text" id="sprintTopic" placeholder="Ej: Olderfall Season 4 launch">
+      <button class="btn-primary" id="btnSprint">▶ INICIAR SPRINT</button>
+      <div class="status-log" id="sprintLog"></div>
+    </div>
+
+    <!-- Script Engine -->
+    <div class="panel-section">
+      <h2>✍️ Script Engine</h2>
+      <input type="text"  id="scriptProject" placeholder="Proyecto / Token">
+      <select id="scriptKol">
+        <option value="General">KOL: General</option>
+        <option value="Eminatrix">Eminatrix</option>
+        <option value="LadyMufa">LadyMufa</option>
+        <option value="1Dory">1Dory</option>
+        <option value="Camululis">Camululis</option>
+        <option value="TheLizardQueen">TheLizardQueen</option>
+      </select>
+      <button class="btn-secondary" id="btnGenScript">⚡ GENERAR SCRIPT</button>
+      <button class="btn-notion"    id="btnSaveNotion" disabled>💾 GUARDAR EN NOTION</button>
+      <div class="status-log" id="scriptLog"></div>
+      <div class="script-output"   id="scriptOutput"></div>
+    </div>
+
+  </div>
+
+  <!-- Kanban board -->
+  <div class="kanban-wrap" id="kanbanContainer"></div>
+
+</div>
+
+<script type="module">
+  import { initOffice, setAgentState, resetAgents } from './js/office.js';
+  import { runSprint, runScriptEngine } from './js/sprint.js';
+  import { initKanban, loadTasks, moveCardToInProgress, moveCardToDone } from './js/kanban.js';
+
+  // Init canvas + kanban
+  initOffice(document.getElementById('officeCanvas'));
+  initKanban('kanbanContainer');
+
+  const API = window.location.origin;
+  let lastScript = null, lastResearch = null, lastProject = null, lastKol = null;
+
+  // ── Sprint ──────────────────────────────────────────────────────
+  document.getElementById('btnSprint').addEventListener('click', async () => {
+    const topic = document.getElementById('sprintTopic').value.trim();
+    if (!topic) return;
+    const btn = document.getElementById('btnSprint');
+    const log = document.getElementById('sprintLog');
+    btn.disabled = true;
+
+    let taskIndex = 0;
+    try {
+      await runSprint(topic, (phase, data) => {
+        if (phase === 'tasks_done') {
+          loadTasks(data);
+          log.textContent = `✅ ${data.length} tareas generadas`;
+        } else if (phase === 'task_progress') {
+          moveCardToInProgress(data.index);
+          log.textContent = `⚡ ${data.task.agent.toUpperCase()}: ${data.task.title}`;
+        } else if (phase === 'review') {
+          // Move all to done
+          document.querySelectorAll('#body-inprogress .kanban-card').forEach((_, i) => {
+            moveCardToDone(i);
+          });
+          log.textContent = '✅ Sprint review completado!';
+        } else if (typeof data === 'string') {
+          log.textContent = data;
+        }
+      });
+    } catch (e) {
+      log.textContent = `❌ ${e.message}`;
+    }
+    btn.disabled = false;
+  });
+
+  // ── Script Engine ───────────────────────────────────────────────
+  document.getElementById('btnGenScript').addEventListener('click', async () => {
+    const project = document.getElementById('scriptProject').value.trim();
+    const kol     = document.getElementById('scriptKol').value;
+    if (!project) return;
+
+    const btnGen  = document.getElementById('btnGenScript');
+    const btnSave = document.getElementById('btnSaveNotion');
+    const log     = document.getElementById('scriptLog');
+    const output  = document.getElementById('scriptOutput');
+
+    btnGen.disabled  = true;
+    btnSave.disabled = true;
+    output.textContent = '';
+
+    try {
+      const { script, research } = await runScriptEngine(project, kol, (phase, data) => {
+        if (typeof data === 'string') log.textContent = data;
+        if (phase === 'script_done') {
+          output.textContent = data.script;
+        }
+      });
+      lastScript   = script;
+      lastResearch = research;
+      lastProject  = project;
+      lastKol      = kol;
+      btnSave.disabled = false;
+      log.textContent = '✅ Script listo! Puedes guardarlo en Notion.';
+    } catch (e) {
+      log.textContent = `❌ ${e.message}`;
+    }
+    btnGen.disabled = false;
+  });
+
+  // ── Guardar en Notion ───────────────────────────────────────────
+  document.getElementById('btnSaveNotion').addEventListener('click', async () => {
+    if (!lastScript) return;
+    const btn = document.getElementById('btnSaveNotion');
+    const log = document.getElementById('scriptLog');
+    btn.disabled = true;
+    log.textContent = '💾 Guardando en Notion...';
+
+    try {
+      const res = await fetch(`${API}/api/notion/save-script`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titulo:   lastProject,
+          proyecto: lastProject,
+          kol:      lastKol,
+          script:   lastScript,
+          fuentes:  lastResearch?.slice(0, 500) || ''
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      log.textContent = `✅ Guardado! Ver en Notion →`;
+      document.getElementById('header-status').textContent = '● Notion sync OK';
+    } catch (e) {
+      log.textContent = `❌ Notion: ${e.message}`;
+    }
+    btn.disabled = false;
+  });
+</script>
+
+</body>
+</html>

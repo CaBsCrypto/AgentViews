@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browns AI — Scripts & Fuentes</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #05050f;
+      color: #e0e0ff;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #0a0a1a;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    header h1 { font-size: 16px; color: #ff006e; letter-spacing: 2px; }
+    header nav a {
+      color: #00f5ff;
+      text-decoration: none;
+      margin-left: 16px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    header nav a:hover { opacity: 1; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+    .tab {
+      padding: 8px 16px;
+      background: #0a0a1a;
+      border: 1px solid #2a2a4a;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      color: #e0e0ff;
+      letter-spacing: 1px;
+    }
+    .tab.active { background: #ff006e; border-color: #ff006e; color: #fff; }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .filters input, .filters select {
+      background: #0d0d22;
+      border: 1px solid #2a2a4a;
+      color: #e0e0ff;
+      padding: 6px 10px;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 11px;
+    }
+    .filters input:focus, .filters select:focus {
+      outline: none;
+      border-color: #00f5ff;
+    }
+
+    .reload-btn {
+      margin-left: auto;
+      padding: 6px 14px;
+      background: #00f5ff;
+      color: #050510;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: #0a0a1a;
+      border: 1px solid #1a1a3a;
+      border-radius: 4px;
+      padding: 14px;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: #3a3a6a; }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #e0e0ff;
+      flex: 1;
+      margin-right: 8px;
+    }
+    .badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .badge-kol     { background: #ff006e22; color: #ff006e; border: 1px solid #ff006e44; }
+    .badge-estado  { background: #bf00ff22; color: #bf00ff; border: 1px solid #bf00ff44; }
+    .badge-tipo    { background: #00f5ff22; color: #00f5ff; border: 1px solid #00f5ff44; }
+    .badge-conf    { background: #ffbe0b22; color: #ffbe0b; border: 1px solid #ffbe0b44; }
+
+    .card-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .card-date { font-size: 10px; color: #ffffff44; }
+
+    .card-preview {
+      font-size: 11px;
+      color: #9090cc;
+      line-height: 1.5;
+      max-height: 60px;
+      overflow: hidden;
+      position: relative;
+      transition: max-height 0.3s;
+    }
+    .card-preview.expanded { max-height: 400px; }
+    .card-preview::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 20px;
+      background: linear-gradient(transparent, #0a0a1a);
+      pointer-events: none;
+    }
+    .card-preview.expanded::after { display: none; }
+
+    .expand-btn {
+      background: none;
+      border: none;
+      color: #00f5ff;
+      font-size: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 4px 0;
+      display: block;
+    }
+
+    .card-url {
+      font-size: 10px;
+      color: #00f5ff88;
+      text-decoration: none;
+      display: block;
+      margin-top: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-url:hover { color: #00f5ff; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px;
+      color: #3a3a5a;
+      font-size: 13px;
+    }
+
+    .loading { color: #ffffff33; font-size: 12px; padding: 20px 0; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a1a; }
+    ::-webkit-scrollbar-thumb { background: #2a2a5a; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>◈ BROWNS AI — Reader</h1>
+  <nav>
+    <a href="/">← Volver a la Oficina</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" data-tab="scripts">📄 Scripts</button>
+    <button class="tab"        data-tab="sources">🔗 Fuentes</button>
+  </div>
+
+  <!-- Scripts tab -->
+  <div id="tab-scripts">
+    <div class="filters">
+      <input  type="text"   id="filterScriptText"  placeholder="Buscar...">
+      <select id="filterKol">
+        <option value="">Todos los KOLs</option>
+        <option>Eminatrix</option>
+        <option>LadyMufa</option>
+        <option>1Dory</option>
+        <option>Camululis</option>
+        <option>TheLizardQueen</option>
+        <option>General</option>
+      </select>
+      <select id="filterEstado">
+        <option value="">Todos los estados</option>
+        <option>Borrador</option>
+        <option>Aprobado</option>
+        <option>Publicado</option>
+      </select>
+      <button class="reload-btn" id="reloadScripts">↻ Recargar</button>
+    </div>
+    <div class="grid" id="gridScripts">
+      <div class="loading">Cargando scripts...</div>
+    </div>
+  </div>
+
+  <!-- Sources tab -->
+  <div id="tab-sources" style="display:none">
+    <div class="filters">
+      <input  type="text"   id="filterSourceText" placeholder="Buscar...">
+      <select id="filterTipo">
+        <option value="">Todos los tipos</option>
+        <option>Web</option>
+        <option>Twitter</option>
+        <option>Reddit</option>
+        <option>CoinGecko</option>
+        <option>Brave</option>
+      </select>
+      <button class="reload-btn" id="reloadSources">↻ Recargar</button>
+    </div>
+    <div class="grid" id="gridSources">
+      <div class="loading">Cargando fuentes...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API = window.location.origin;
+  let allScripts = [], allSources = [];
+
+  // ── Tabs ──────────────────────────────────────────────────────────
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const name = tab.dataset.tab;
+      document.getElementById('tab-scripts').style.display = name === 'scripts' ? '' : 'none';
+      document.getElementById('tab-sources').style.display = name === 'sources' ? '' : 'none';
+    });
+  });
+
+  // ── Scripts ───────────────────────────────────────────────────────
+  async function loadScripts() {
+    document.getElementById('gridScripts').innerHTML = '<div class="loading">Cargando...</div>';
+    try {
+      const res  = await fetch(`${API}/api/notion/get-scripts`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      allScripts = data.scripts;
+      renderScripts();
+    } catch (e) {
+      document.getElementById('gridScripts').innerHTML =
+        `<div class="empty-state">❌ ${e.message}<br><small>¿Está el backend corriendo?</small></div>`;
+    }
+  }
+
+  function renderScripts() {
+    const text   = document.getElementById('filterScriptText').value.toLowerCase();
+    const kol    = document.getElementById('filterKol').value;
+    const estado = document.getElementById('filterEstado').value;
+
+    const filtered = allScripts.filter(s =>
+      (!text   || s.titulo.toLowerCase().includes(text) || s.script.toLowerCase().includes(text)) &&
+      (!kol    || s.kol === kol) &&
+      (!estado || s.estado === estado)
+    );
+
+    if (!filtered.length) {
+      document.getElementById('gridScripts').innerHTML = '<div class="empty-state">Sin scripts aún</div>';
+      return;
+    }
+
+    document.getElementById('gridScripts').innerHTML = filtered.map((s, i) => `
+      <div class="card">
+        <div class="card-top">
+          <div class="card-title">${s.titulo || s.proyecto || 'Sin título'}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            ${s.kol    ? `<span class="badge badge-kol">${s.kol}</span>` : ''}
+            ${s.estado ? `<span class="badge badge-estado">${s.estado}</span>` : ''}
+          </div>
+        </div>
+        <div class="card-meta">
+          <span class="card-date">${s.fecha || ''}</span>
+          <span class="card-date">${s.duracion || ''}</span>
+          <span class="card-date">${s.idioma || ''}</span>
+        </div>
+        ${s.script ? `
+          <div class="card-preview" id="prev-script-${i}">${s.script}</div>
+          <button class="expand-btn" onclick="togglePreview('script-${i}')">▼ Expandir</button>
+        ` : ''}
+        ${s.url ? `<a class="card-url" href="${s.url}" target="_blank">Ver en Notion →</a>` : ''}
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('filterScriptText').addEventListener('input', renderScripts);
+  document.getElementById('filterKol').addEventListener('change', renderScripts);
+  document.getElementById('filterEstado').addEventListener('change', renderScripts);
+  document.getElementById('reloadScripts').addEventListener('click', loadScripts);
+
+  // ── Sources ───────────────────────────────────────────────────────
+  async function loadSources() {
+    document.getElementById('gridSources').innerHTML = '<div class="loading">Cargando...</div>';
+    try {
+      const res  = await fetch(`${API}/api/notion/get-sources`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      allSources = data.sources;
+      renderSources();
+    } catch (e) {
+      document.getElementById('gridSources').innerHTML =
+        `<div class="empty-state">❌ ${e.message}</div>`;
+    }
+  }
+
+  function renderSources() {
+    const text = document.getElementById('filterSourceText').value.toLowerCase();
+    const tipo = document.getElementById('filterTipo').value;
+
+    const filtered = allSources.filter(s =>
+      (!text || s.titulo.toLowerCase().includes(text) || s.resumen.toLowerCase().includes(text)) &&
+      (!tipo || s.tipo === tipo)
+    );
+
+    if (!filtered.length) {
+      document.getElementById('gridSources').innerHTML = '<div class="empty-state">Sin fuentes aún</div>';
+      return;
+    }
+
+    document.getElementById('gridSources').innerHTML = filtered.map((s, i) => `
+      <div class="card">
+        <div class="card-top">
+          <div class="card-title">${s.titulo}</div>
+          <div style="display:flex;gap:4px">
+            <span class="badge badge-tipo">${s.tipo}</span>
+            <span class="badge badge-conf">${s.confiabilidad}</span>
+          </div>
+        </div>
+        <div class="card-meta">
+          <span class="card-date">${s.proyecto || ''}</span>
+          <span class="card-date">${s.fecha || ''}</span>
+        </div>
+        ${s.resumen ? `
+          <div class="card-preview" id="prev-source-${i}">${s.resumen}</div>
+          <button class="expand-btn" onclick="togglePreview('source-${i}')">▼ Expandir</button>
+        ` : ''}
+        ${s.url ? `<a class="card-url" href="${s.url}" target="_blank">${s.url}</a>` : ''}
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('filterSourceText').addEventListener('input', renderSources);
+  document.getElementById('filterTipo').addEventListener('change', renderSources);
+  document.getElementById('reloadSources').addEventListener('click', loadSources);
+
+  // ── Helpers ───────────────────────────────────────────────────────
+  function togglePreview(id) {
+    const el  = document.getElementById(`prev-${id}`);
+    const btn = el?.nextElementSibling;
+    if (!el) return;
+    el.classList.toggle('expanded');
+    if (btn) btn.textContent = el.classList.contains('expanded') ? '▲ Colapsar' : '▼ Expandir';
+  }
+
+  // Initial load
+  loadScripts();
+</script>
+
+</body>
+</html>

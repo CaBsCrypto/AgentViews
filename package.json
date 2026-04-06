@@ -1,0 +1,24 @@
+{
+  "name": "browns-ai",
+  "version": "1.0.0",
+  "description": "Browns AI — Plataforma de agentes IA para Umbra KOL Web3 LATAM",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CaBsCrypto/AgentViews.git"
+  },
+  "author": "Browns Studio / Umbra",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/CaBsCrypto/AgentViews/issues"
+  },
+  "homepage": "https://github.com/CaBsCrypto/AgentViews#readme",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
+    "@notionhq/client": "^5.16.0"
+  }
+}
