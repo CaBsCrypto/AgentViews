@@ -1,5 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import Groq from 'groq-sdk';
+const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,10 +21,13 @@ export default async function handler(req, res) {
   };
 
   try {
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-6',
+    const msg = await client.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 1200,
-      system: `Eres el Guionista de Umbra, agencia KOL Web3 latinoamericana.
+      messages: [
+        {
+          role: 'system',
+          content: `Eres el Guionista de Umbra, agencia KOL Web3 latinoamericana.
 Escribes scripts de video 60-90s para creadores crypto/gaming.
 KOL asignado: ${kol} — ${kolStyles[kol] || kolStyles['General']}
 
@@ -39,13 +42,15 @@ REGLAS ABSOLUTAS:
   [HOOK 0:00-0:05]
   [CONTEXTO 0:05-0:25]
   [POR QUÉ IMPORTA 0:25-0:50]
-  [CTA 0:50-1:00]`,
-      messages: [{
-        role: 'user',
-        content: `Proyecto: ${project}\nResearch con datos reales:\n${research || 'Sin research adicional'}\n\nEscribe el script completo.`
-      }]
+  [CTA 0:50-1:00]`
+        },
+        {
+          role: 'user',
+          content: `Proyecto: ${project}\nResearch con datos reales:\n${research || 'Sin research adicional'}\n\nEscribe el script completo.`
+        }
+      ]
     });
-    return res.status(200).json({ script: msg.content[0].text });
+    return res.status(200).json({ script: msg.choices[0].message.content });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
